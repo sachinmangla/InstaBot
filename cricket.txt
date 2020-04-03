@@ -1,0 +1,50 @@
+from django.shortcuts import render, redirect, HttpResponse
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User, auth
+from django.contrib.sessions.models import Session
+# Create your views here.
+
+from matchs.models import Match
+from Teamstats.models import Player, SelectedPlayer
+
+def homepage(request):
+    M = Match.objects.all()
+    print(request.POST.getlist('match_id'))
+    return render(request, 'front.html', {'M' : M})
+
+@login_required(redirect_field_name='')
+def maketeam(request):
+    M_id =request.POST.getlist('match_id')
+    if len(M_id) == 1:
+        M = Match.objects.get(id = M_id[0])
+        T1 = Player.objects.filter(Country = M.TeamA)
+        T2 = Player.objects.filter(Country = M.TeamB)
+    print(request.POST.getlist('SP'))
+    return render(request, 'home.html',{'Ts1' : T1, 'Ts2' : T2, 'C1' : M.TeamA, 'C2' : M.TeamB, 'M_id' : M_id} )
+ 
+
+def selectedplayer(request):
+    P = request.POST.getlist('SP')
+    if len(P) == 11:
+        match_id = P[0].split('/')[2]
+        print(match_id)
+        if SelectedPlayer.objects.filter(Admin = request.user, Match = match_id).exists():
+           pass
+        else:
+            for p in P:      
+                l = p.split('/')
+                f = SelectedPlayer(Admin= request.user, Match = l[2], Player = l[0])
+                f.save()
+        sp = SelectedPlayer.objects.filter(Admin= request.user, Match= match_id)
+        p = Player.objects.all()
+        return render(request, 'selectdplayer.html', {'sp' : sp, 'p' : p, 'M_id' : match_id})
+    else:
+        redirect('/maketeam/')
+
+def predictedscore(request):
+    match_id = request.POST['match_id']
+    scores = request.POST.getlist('score')
+    for i in scores:
+        P = SelectedPlayer.objects.get(Admin= request.user, Match= match_id)
+        P(score= i).save()
+    return HttpResponse('save')
