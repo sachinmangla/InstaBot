@@ -1,2 +1,2 @@
 # InstaBot (Python)
-This is Instabot here you could find the peoples who not follow you on instagram but you follows those peoples on instagram
+This is Instabot here you can be find the peoples who not follow you on instagram but you follows those peoples on instagram
